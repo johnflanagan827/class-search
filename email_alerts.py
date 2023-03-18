@@ -4,7 +4,6 @@ from email.message import EmailMessage
 import ssl
 from dotenv import load_dotenv
 
-
 def send_email(course, section, seats):
     load_dotenv()
     email_sender = os.environ.get('EMAIL_USERNAME')
