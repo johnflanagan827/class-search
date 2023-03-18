@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import time
 from selenium import webdriver
@@ -7,7 +9,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 def setup():
     ''' performs basic setup for selenium to browse https://classsearch.nd.edu, returns driver '''
     options = Options()
-    options.headless = True
+    options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     dc = DesiredCapabilities.CHROME
     dc["goog:loggingPrefs"] = {"browser":"ALL"}
@@ -19,8 +21,13 @@ def setup():
 def menu():
     ''' displays menu, returns user selection (1-4) '''
     print('\nWhat would you like to do?')
-    print('1: Add or update a class\n2: Remove a class\n3: View saved classes\n4: Exit')
-    selection = int(input('\nMake a selection: '))
+    print('1: Add or update a class\n2: Remove a class\n3: Display saved classes\n4: Exit')
+    try:
+        selection = int(input('\nMake a selection: '))
+    except ValueError:
+        print('Error: please enter a valid selection')
+        time.sleep(1.5)
+        menu()
 
     if selection not in {1, 2, 3, 4}:
         print('Error: please enter a valid selection')
@@ -58,8 +65,8 @@ def search_results(driver, results):
     try:
         if int(course) == len(results)+1: 
             print()
-            results = search()
-            search_results(results)
+            results = search(driver)
+            search_results(driver, results)
         else:
             driver.execute_script("document.querySelectorAll('[data-key]')[" + course + "].click();")
             driver.execute_script("await new Promise(r => setTimeout(r, 2000));")
@@ -67,7 +74,7 @@ def search_results(driver, results):
     except:
         print('\nError: must select a valid course')
         time.sleep(2)
-        search_results(results)
+        search_results(driver, results)
 
 def check_seats(driver):
     '''  displays the remaining seats in each section of class from search_results, returns section, crn, and remaining seats based on user selection '''
@@ -116,8 +123,51 @@ def update_file(driver, course, section, crn, remaining_seats):
 
     driver.execute_script("document.getElementsByClassName('fa fa-caret-left')[0].click();")
 
+def remove_class():
+    ''' removes class from classes.txt based on user input'''
+    if os.path.exists('classes.txt'):
+        with open('classes.txt', 'r') as fh:                        
+            lines = fh.readlines()
+            if (not lines): 
+                print('Error: you do not have any courses added')
+                time.sleep(1.5)
+            else:
+                print('\nClasses:')
+                for pos, line in enumerate(lines, start=1):
+                    print(f'{pos}: {line.rstrip()}')
+                remove = int(input('\nSelect which class you want to remove: '))
+                try:
+                    lines.pop(remove-1)
+                    with open('classes.txt', 'w') as fh:
+                        fh.writelines(lines)
+                except:
+                    print('Error: please enter a valid selection')
+                    time.sleep(1.5)
+                    remove_class()
+    else:
+        print('Error: you have not added any courses yet')
+        time.sleep(1.5)
+
+def display_classes():
+    ''' displays classes in classes.txt'''
+    print()
+    if os.path.exists('classes.txt'):
+        with open('classes.txt', 'r') as fh:
+            lines = fh.readlines()
+            if (not lines):
+                print('Error: you do not have any courses added')
+                time.sleep(1.5)
+            else:
+                print('\nClasses:')
+                for pos, line in enumerate(lines, start=1):
+                    print(f'{pos}: {line.rstrip()}')
+                input()
+    else:
+        print('Error: you do not have any courses added')
+        time.sleep(1.5)
+
 def main():
-    ''' main execution '''
+    # main execution
     driver = setup()
 
     done = False
@@ -129,29 +179,9 @@ def main():
             section, crn, remaining_seats = check_seats(driver)
             update_file(driver, course, section, crn, remaining_seats)
         elif choice == 2:
-            if os.path.exists('classes.txt'):
-                openings = []
-                with open('classes.txt', 'r') as fh:
-                    lines = fh.readlines()
-                print('\nClasses:')
-                for pos, line in enumerate(lines, start=1):
-                    print(f'{pos}: {line}')
-                remove = int(input('\nSelect which class you want to remove: '))
-                lines.pop(remove-1)
-                with open('classes.txt', 'w') as fh:
-                    fh.writelines(lines)
-            else: 
-                print('Error: you have not added any courses yet')
-                time.sleep(1.5)
+            remove_class()
         elif choice == 3:
-            if os.path.exists('classes.txt'):
-                openings = []
-                with open('classes.txt', 'r') as fh:
-                    openings = fh.readlines()
-                print(openings)
-            else:
-                print('Error: you have not added any courses yet')
-                time.sleep(1.5)
+            display_classes()
         elif choice == 4:
             print('Goodbye!')
             done = True

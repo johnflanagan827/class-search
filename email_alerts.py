@@ -11,14 +11,14 @@ def send_email(course, section, seats):
     email_password = os.environ.get('EMAIL_PASSWORD')
 
     if seats <= 0:
-        subject = course + ' Section ' + section + ' is Now Empty'
-        body = 'unfortunately, ' + course + ' Section ' + section + ' is empty. We will keep you updated if any seats become avaialble.'
+        subject = f'{course} Section {section} is Now Empty'
+        body = f'unfortunately, {course} Section {section} is empty. We will keep you updated if any seats become avaialble.'
     elif seats == 1:
-        subject = course + ' Section ' + section + ' Has a Seat Availible!'
-        body = course + ' Section ' + section + ' has ' + str(seats) + ' seat availible! You can go to https://classsearch.nd.edu to register for this class.'
+        subject = f'{course} Section {section} Has a Seat Availible!'
+        body = f'{course} Section {section} has {str(seats)} seat availible! You can go to https://classsearch.nd.edu to register for this class.'
     else:
-        subject = course + ' Section ' + section + ' Has Seats Availible!'
-        body = course + ' Section ' + section + ' has ' + str(seats) + ' seats availible! You can go to https://classsearch.nd.edu to register for this class.'
+        subject = f'{course} Section {section} Has Seats Availible!'
+        body = f'{course} Section {section} has {str(seats)} seats availible! You can go to https://classsearch.nd.edu to register for this class.'
     
     e = EmailMessage()
     e['From'] = email_sender
