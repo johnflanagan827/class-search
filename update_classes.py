@@ -40,8 +40,5 @@ def main():
         print('Error: you have not added any courses yet')
     driver.quit()
 
-def new_func():
-    return
-
 if __name__ == '__main__':
     main()
