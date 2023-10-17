@@ -12,31 +12,29 @@ def setup() -> any:
     options = Options()
     options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    dc = DesiredCapabilities.CHROME
-    dc['goog:loggingPrefs'] = {'browser': 'ALL'}
-    driver = webdriver.Chrome(options=options, desired_capabilities=dc)
+    options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
+    driver = webdriver.Chrome(options=options)
     driver.get('https://classsearch.nd.edu')
     driver.get_log('browser')
     return driver
 
 
-def menu() -> any:
-    """ displays menu, returns user selection (1-4) """
+def menu() -> int:
+    """Displays a menu and returns the user selection (1-4)."""
     print('\nWhat would you like to do?')
     print('1: Add or update a class\n2: Remove a class\n3: Display saved classes\n4: Exit')
-    try:
-        selection = int(input('\nMake a selection: '))
-    except ValueError:
-        print('Error: please enter a valid selection')
-        time.sleep(1.5)
-        menu()
 
-    if selection not in {1, 2, 3, 4}:
-        print('Error: please enter a valid selection')
-        time.sleep(1.5)
-        menu()
-
-    return selection
+    while True:
+        try:
+            selection = int(input('\nMake a selection: '))
+            if selection in {1, 2, 3, 4}:
+                return selection
+            else:
+                print('Error: please enter a valid selection')
+                time.sleep(1.5)
+        except ValueError:
+            print('Error: please enter a valid selection')
+            time.sleep(1.5)
 
 
 def search(driver: any) -> list[str]:
@@ -45,7 +43,6 @@ def search(driver: any) -> list[str]:
     driver.execute_script("document.getElementById('crit-keyword').value='" + usr_class + "';")
     driver.execute_script("document.getElementById('search-button').click();")
     driver.execute_script("await new Promise(r => setTimeout(r, 2000));")
-
     driver.execute_script("console.log(document.querySelectorAll('[data-key]').length);")
     data_text = driver.get_log('browser')[0]['message']
     num_classes = int(data_text[17:])
